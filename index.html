@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lukas App · Größen &amp; Messen</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    font-family: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
+    color: #1e293b;
+    background: linear-gradient(to bottom, #f0f9ff, #ecfdf5);
+  }
+  body { min-height: 100vh; }
+  .wrap { max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; }
+
+  /* Header */
+  header { position: sticky; top: 0; z-index: 30; background: rgba(255,255,255,.92); backdrop-filter: blur(6px); border-bottom: 4px solid #22c55e; }
+  header .inner { padding: 10px 16px; text-align: center; }
+  h1 { font-size: 1.05rem; font-weight: 800; letter-spacing: -0.02em; }
+  .unterzeile { font-size: 1.05rem; font-weight: 800; margin-top: 2px; }
+  .version { font-size: 0.62rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #2563eb; margin-top: 3px; }
+
+  main { flex: 1; padding: 20px 16px; }
+  .hinweis { text-align: center; font-size: .82rem; color: #64748b; margin-bottom: 16px; line-height: 1.5; }
+  .hinweis strong { color: #334155; }
+
+  /* Themen-Grid */
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .thema-btn {
+    border: none; border-radius: 24px; padding: 16px; text-align: left; cursor: pointer;
+    color: #fff; font-weight: 800; font-size: 1rem; line-height: 1.2;
+    box-shadow: 0 8px 16px rgba(0,0,0,.18);
+    transition: transform .1s;
+  }
+  .t-blau { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+  .t-gruen { background: linear-gradient(135deg, #16a34a, #166534); }
+  .t-violett { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+  .t-quiz { background: linear-gradient(135deg, #fbbf24, #f97316); }
+  .t-quiz .s { font-weight: 600; font-size: .68rem; opacity: .92; margin-top: 4px; line-height: 1.4; }
+  /* gleiche Farben für die Themenseiten */
+  .v-blau { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+  .v-gruen { background: linear-gradient(135deg, #16a34a, #166534); }
+  .v-violett { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+  .h-blau { border-color: #3b82f6; }
+  .h-gruen { border-color: #16a34a; }
+  .h-violett { border-color: #8b5cf6; }
+  .h-quiz { border-color: #f97316; }
+  .thema-btn:active { transform: scale(.95); }
+  .thema-btn .icon { font-size: 1.9rem; display: block; margin-bottom: 8px; }
+
+  .trenner { margin-top: 40px; text-align: center; color: #cbd5e1; letter-spacing: 12px; font-size: .8rem; }
+  .quiz-btn {
+    width: 100%; margin-top: 16px; border: none; border-radius: 24px; padding: 20px 16px; cursor: pointer;
+    color: #fff; background: linear-gradient(90deg, #fbbf24, #f97316);
+    box-shadow: 0 8px 16px rgba(249,115,22,.3); transition: transform .1s;
+  }
+  .quiz-btn:active { transform: scale(.95); }
+  .quiz-btn .icon { font-size: 1.9rem; }
+  .quiz-btn .t { font-size: 1.1rem; font-weight: 800; margin-top: 4px; }
+  .quiz-btn .s { font-size: .72rem; font-weight: 600; opacity: .92; margin-top: 2px; }
+
+  /* Zurück-Button */
+  .zurueck { border: none; border-radius: 999px; background: #e2e8f0; color: #475569; font-weight: 700; font-size: .82rem; padding: 8px 16px; margin-bottom: 16px; cursor: pointer; }
+  .zurueck:active { transform: scale(.95); }
+
+  /* Flip-Karte */
+  .flip-rahmen { perspective: 1200px; }
+  .flip-karte { position: relative; height: 400px; width: 100%; cursor: pointer; transform-style: preserve-3d; transition: transform .7s cubic-bezier(.4,0,.2,1); }
+  .flip-karte.offen { transform: rotateY(180deg); }
+  .seite { position: absolute; inset: 0; border-radius: 24px; padding: 24px; backface-visibility: hidden; -webkit-backface-visibility: hidden; overflow-y: auto; }
+  .seite.vorne { color: #fff; box-shadow: 0 12px 24px rgba(0,0,0,.15); display: flex; flex-direction: column; }
+  .seite.hinten { background: #fff; transform: rotateY(180deg); box-shadow: 0 12px 24px rgba(0,0,0,.12); }
+  .seite .icon { font-size: 2.6rem; }
+  .seite h2 { font-size: 1.35rem; font-weight: 800; margin-top: 10px; }
+  .seite.vorne .zeilen { margin-top: 14px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .seite.vorne .zeile { font-size: .92rem; line-height: 1.5; }
+  .seite.vorne .punkt { padding-left: 8px; font-weight: 700; }
+  .tip { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; opacity: .9; }
+  .bsp { margin-top: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 12px; }
+  .bsp .f { font-size: .85rem; font-weight: 700; color: #1e293b; }
+  .bsp .l { font-size: .85rem; color: #475569; margin-top: 4px; }
+
+  /* Quiz */
+  .karte { background: #fff; border-radius: 24px; border: 2px solid #f97316; padding: 20px; box-shadow: 0 12px 24px rgba(0,0,0,.1); }
+  .karte.t-blau-k { border-color: #3b82f6; }
+  .quiz-top { display: flex; justify-content: space-between; align-items: center; }
+  .badge { background: #ffedd5; color: #ea580c; font-size: .72rem; font-weight: 800; border-radius: 999px; padding: 4px 12px; }
+  .punkte { font-weight: 800; font-size: .9rem; color: #475569; }
+  .balken { height: 8px; background: #ffedd5; border-radius: 999px; margin-top: 10px; overflow: hidden; }
+  .balken > div { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #fbbf24, #f97316); transition: width .4s; }
+  .rubrik { font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #94a3b8; margin-top: 14px; }
+  .frage { font-size: 1.05rem; font-weight: 800; margin-top: 4px; }
+  .antworten { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .antwort { border: 2px solid #e2e8f0; background: #f8fafc; color: #1e293b; border-radius: 16px; padding: 12px 16px; text-align: left; font-size: .95rem; font-weight: 700; cursor: pointer; transition: transform .08s; }
+  .antwort:active { transform: scale(.98); }
+  .antwort.richtig { background: #dcfce7; border-color: #22c55e; color: #166534; }
+  .antwort.falsch { background: #fee2e2; border-color: #f87171; color: #b91c1c; }
+  .antwort.inaktiv { color: #94a3b8; }
+  .ergebnis { text-align: center; padding-top: 8px; }
+  .ergebnis .emo { font-size: 3.2rem; }
+  .ergebnis h2 { font-size: 1.4rem; font-weight: 800; margin-top: 8px; }
+  .ergebnis p { font-size: .85rem; color: #64748b; margin-top: 4px; line-height: 1.5; }
+  .neu-btn { width: 100%; margin-top: 18px; border: none; border-radius: 16px; padding: 14px; font-size: 1.05rem; font-weight: 800; color: #fff; background: linear-gradient(90deg, #34d399, #16a34a); box-shadow: 0 8px 16px rgba(22,163,74,.3); cursor: pointer; }
+  .neu-btn:active { transform: scale(.95); }
+
+  /* Footer */
+  footer { border-top: 1px solid #e2e8f0; background: rgba(255,255,255,.9); padding: 12px 16px; }
+  footer .inner { max-width: 480px; margin: 0 auto; display: flex; justify-content: space-between; font-size: .68rem; }
+  footer button { border: none; background: none; color: #2563eb; font-weight: 700; font-size: .68rem; text-decoration: underline dotted; cursor: pointer; padding: 0; }
+  .copy { color: #2563eb; font-weight: 800; }
+
+  /* Impressum / Datenschutz */
+  .overlay { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.4); display: flex; align-items: flex-end; justify-content: center; }
+  .sheet { width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto; background: #fff; border-radius: 24px 24px 0 0; padding: 20px; box-shadow: 0 -8px 32px rgba(0,0,0,.25); }
+  .sheet-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .sheet h2 { font-size: 1.05rem; font-weight: 800; }
+  .schliessen { border: none; background: #f1f5f9; color: #475569; font-weight: 800; border-radius: 999px; padding: 4px 12px; cursor: pointer; }
+  .sheet .txt { margin-top: 12px; font-size: .85rem; line-height: 1.65; color: #475569; display: flex; flex-direction: column; gap: 10px; }
+  .txt strong { color: #1e293b; }
+
+  /* Konfetti */
+  #konfetti { position: fixed; inset: 0; z-index: 50; pointer-events: none; overflow: hidden; }
+  .confetti-stueck { position: absolute; top: -20px; border-radius: 2px; animation: fall linear forwards; }
+  @keyframes fall {
+    0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: .9; }
+  }
+  .versteckt { display: none !important; }
+</style>
+</head>
+<body>
+<div id="app" class="wrap">
+  <header>
+    <div class="inner">
+      <h1>🎓 Lukas App</h1>
+      <div class="unterzeile">📐 Größen &amp; Messen</div>
+      <div class="version">Version 1.1.1 · Mathe für die 4. Klasse</div>
+    </div>
+  </header>
+  <main id="inhalt"></main>
+  <footer>
+    <div class="inner">
+      <button onclick="oeffneSheet('impressum')">Impressum</button>
+      <span class="copy">© 2026</span>
+      <button onclick="oeffneSheet('datenschutz')">Datenschutz</button>
+    </div>
+  </footer>
+</div>
+<div id="sheet-overlay" class="overlay versteckt" onclick="schliesseSheet(event)">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-top">
+      <h2 id="sheet-titel"></h2>
+      <button class="schliessen" onclick="schliesseSheet()">✕</button>
+    </div>
+    <div class="txt" id="sheet-text"></div>
+  </div>
+</div>
+<div id="konfetti"></div>
+
+<script>
+"use strict";
+
+var THEMEN = [
+  { id:"laengen", icon:"📏", titel:"Längen", farbe:"t-blau",
+    erklaerungZeilen:[
+      "Längen sagen dir, wie lang, hoch oder weit etwas ist.",
+      "Einheiten: km · m · cm · mm",
+      "• 1 km = 1000 m",
+      "• 1 m = 100 cm",
+      "• 1 cm = 10 mm"
+    ],
+    beispiele:[
+      {frage:"3 m = ? cm", loesung:"300 cm — denn 1 m = 100 cm."},
+      {frage:"Der Bleistift ist 15 cm lang. Wie viele mm sind das?", loesung:"150 mm — denn 1 cm = 10 mm."},
+      {frage:"Wie lang ist ungefähr dein Mathebuch?", loesung:"Etwa 25–30 cm. Schätz zuerst, miss dann nach!"}
+    ]},
+  { id:"gewichte", icon:"⚖️", titel:"Gewichte", farbe:"t-gruen",
+    erklaerungZeilen:[
+      "Gewichte (die Masse) sagen dir, wie schwer etwas ist.",
+      "Einheiten: t · kg · g · mg",
+      "• 1 t = 1000 kg",
+      "• 1 kg = 1000 g",
+      "• 1 g = 1000 mg",
+      "Achtung: Bei g und mg werden es mehr Nullen, nicht weniger!"
+    ],
+    beispiele:[
+      {frage:"3 kg = ? g", loesung:"3000 g — denn 1 kg = 1000 g."},
+      {frage:"200 g + 400 mg = ? g", loesung:"400 mg sind 0,4 g. Also: 200 g + 0,4 g = 200,4 g."},
+      {frage:"Wie schwer ist ungefähr ein Apfel?", loesung:"Etwa 150–200 g. Ein Kilogramm sind 5–6 Äpfel."}
+    ]},
+  { id:"fluessigkeiten", icon:"🧃", titel:"Flüssigkeiten", farbe:"t-violett",
+    erklaerungZeilen:[
+      "Bei Flüssigkeiten messen wir, wie viel hineinpasst (Rauminhalt / Fassungsvermögen).",
+      "Einheiten: l · ml",
+      "• 1 l = 1000 ml",
+      "• ein halber Liter = 500 ml"
+    ],
+    beispiele:[
+      {frage:"2 l = ? ml", loesung:"2000 ml — denn 1 l = 1000 ml."},
+      {frage:"Eine Saftpackung hat 750 ml. Wie viel fehlt bis 1 l?", loesung:"250 ml, denn 1000 ml − 750 ml = 250 ml."},
+      {frage:"Wie viel passt in eine Tasse?", loesung:"Etwa 200–250 ml. Eine große Wasserflasche hat meist 1000 ml = 1 l."}
+    ]},
+  { id:"zeit", icon:"🕐", titel:"Zeit", farbe:"t-blau",
+    erklaerungZeilen:[
+      "Zeit messen wir mit Stunden, Minuten und Sekunden.",
+      "Einheiten: h · min · s",
+      "• 1 h = 60 min",
+      "• 1 min = 60 s",
+      "Trick: Bei der Zeit zählt die 60, nicht die 1000!"
+    ],
+    beispiele:[
+      {frage:"2 h = ? min", loesung:"120 min — denn 1 h = 60 min."},
+      {frage:"90 min = ? h und ? min", loesung:"1 h und 30 min, denn 90 = 60 + 30."},
+      {frage:"Der Film dauert 1½ h. Wie viele Minuten sind das?", loesung:"90 min — eine ganze Stunde plus eine halbe (30 min)."}
+    ]},
+  { id:"geld", icon:"💶", titel:"Geld", farbe:"t-gruen",
+    erklaerungZeilen:[
+      "Geld rechnen wir in Euro und Cent.",
+      "Einheiten: € · ct",
+      "• 1 € = 100 ct",
+      "Tipp: Beim Bezahlen hilft dir das schriftliche Addieren und Subtrahieren mit Komma."
+    ],
+    beispiele:[
+      {frage:"3 € = ? ct", loesung:"300 ct — denn 1 € = 100 ct."},
+      {frage:"Ein Heft kostet 1,50 €, ein Stift 0,80 €. Was kostet beides?", loesung:"2,30 €, denn 1,50 € + 0,80 € = 2,30 €."},
+      {frage:"Du bezahlst mit 5 € und bekommst 1,75 € zurück. Was hat es gekostet?", loesung:"3,25 €, denn 5 € − 1,75 € = 3,25 €."}
+    ]},
+  { id:"umrechnen", icon:"🔄", titel:"Umrechnen", farbe:"t-violett",
+    erklaerungZeilen:[
+      "Beim Umrechnen gehst du die Treppe hoch oder runter:",
+      "• zur kleineren Einheit: × 10, × 100 oder × 1000",
+      "• zur größeren Einheit: ÷ 10, ÷ 100 oder ÷ 1000",
+      "Beispiel: 3 kg = 3000 g"
+    ],
+    beispiele:[
+      {frage:"4,5 km = ? m", loesung:"4500 m — 4 km = 4000 m und 0,5 km = 500 m."},
+      {frage:"6000 ml = ? l", loesung:"6 l — denn 1000 ml = 1 l."},
+      {frage:"2,4 kg = ? g", loesung:"2400 g — das Komma wandert 3 Stellen nach rechts."}
+    ]},
+  { id:"rechnen", icon:"➕", titel:"Rechnen mit Größen", farbe:"t-blau",
+    erklaerungZeilen:[
+      "Mit Größen rechnest du wie mit normalen Zahlen – aber erst alles in dieselbe Einheit umwandeln!",
+      "Beispiel: 2 kg + 500 g",
+      "= 2000 g + 500 g",
+      "= 2500 g = 2,5 kg"
+    ],
+    beispiele:[
+      {frage:"2 kg + 500 g = ? kg", loesung:"2,5 kg — 500 g sind 0,5 kg."},
+      {frage:"1 l − 300 ml = ? ml", loesung:"700 ml, denn 1000 ml − 300 ml = 700 ml."},
+      {frage:"1,5 h + 45 min = ? h", loesung:"2,25 h — 45 min sind 0,75 h. Also 1,5 + 0,75 = 2,25 h."}
+    ]}
+];
+
+var QUIZ_FRAGEN = [
+  {rubrik:"📏 Längen", frage:"Wie viele cm sind 3 m?", antworten:["30 cm","300 cm","3000 cm"], richtig:1},
+  {rubrik:"📏 Längen", frage:"Ein km hat wie viele Meter?", antworten:["100 m","1000 m","10 m"], richtig:1},
+  {rubrik:"⚖️ Gewichte", frage:"Wie viele g sind 3 kg?", antworten:["300 g","30 g","3000 g"], richtig:2},
+  {rubrik:"⚖️ Gewichte", frage:"200 g + 400 mg = ? g", antworten:["200,4 g","204 g","2004 g"], richtig:0},
+  {rubrik:"🧃 Flüssigkeiten", frage:"Wie viele ml sind 2 l?", antworten:["200 ml","2000 ml","20 ml"], richtig:1},
+  {rubrik:"🧃 Flüssigkeiten", frage:"750 ml + 250 ml = ?", antworten:["1 l","75 l","100 ml"], richtig:0},
+  {rubrik:"🕐 Zeit", frage:"Wie viele Minuten sind 2 h?", antworten:["120 min","60 min","200 min"], richtig:0},
+  {rubrik:"🕐 Zeit", frage:"90 min = ?", antworten:["9 h","1 h 30 min","1 h 90 min"], richtig:1},
+  {rubrik:"💶 Geld", frage:"Wie viele ct sind 3 €?", antworten:["30 ct","3000 ct","300 ct"], richtig:2},
+  {rubrik:"💶 Geld", frage:"1,50 € + 0,80 € = ?", antworten:["2,30 €","2,13 €","1,58 €"], richtig:0},
+  {rubrik:"🔄 Umrechnen", frage:"4,5 km = ? m", antworten:["45 m","450 m","4500 m"], richtig:2},
+  {rubrik:"🔄 Umrechnen", frage:"6000 ml = ? l", antworten:["60 l","6 l","600 l"], richtig:1},
+  {rubrik:"➕ Rechnen", frage:"2 kg + 500 g = ? kg", antworten:["2,5 kg","7 kg","2,05 kg"], richtig:0},
+  {rubrik:"➕ Rechnen", frage:"1 l − 300 ml = ?", antworten:["700 ml","1300 ml","70 ml"], richtig:0}
+];
+
+var IMPRESSUM = "<p><strong>Lern-App für Lukas · Version 1.1.1</strong></p>" +
+  "<p>Diese Lern-App wurde mit Hilfe einer Künstlichen Intelligenz (KI) erstellt und konzipiert. " +
+  "Sie ist für den Matheunterricht der vierten Klasse konzipiert. KI kann Fehler machen – " +
+  "die Inhalte wurden und werden daher von den Eltern geprüft.</p>" +
+  "<p>Die App soll anregen, sich spielerisch mit einer Lern-App mathematisches Wissen anzueignen. Mathe soll Spaß machen!</p>" +
+  "<p><strong>Verantwortlich für die Lern-App</strong><br>Katharina Schütz<br>Potsdam, Germany<br>" +
+  "gemäß dem Telekommunikationsgesetz (TKG).</p>";
+
+var DATENSCHUTZ = "<p><strong>Datenschutzbestimmungen</strong></p>" +
+  "<p>✅ Es werden keine Cookies gesammelt.</p>" +
+  "<p>✅ Es werden keine personenbezogenen Daten erhoben, gespeichert oder weitergegeben.</p>" +
+  "<p>✅ Es erfolgt keine Analyse des Nutzungsverhaltens.</p>" +
+  "<p>✅ Die App benötigt keine Registrierung und funktioniert komplett offline.</p>" +
+  "<p>Sämtliche Inhalte und der Lernfortschritt bleiben ausschließlich auf diesem Gerät.</p>";
+
+var inhalt = document.getElementById("inhalt");
+var konfettiBox = document.getElementById("konfetti");
+
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;"); }
+
+function mischen(arr){
+  var a = arr.slice();
+  for (var i = a.length - 1; i > 0; i--){
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+
+// ── Startseite ──────────────────────────────────────────────
+function zeigeStart(){
+  var html = '<p class="hinweis">Tippe auf ein Thema: Erst gibt es eine <strong>Erklärung</strong>, ' +
+    'dann dreh die Karte um für <strong>3 Beispiele</strong>! 📖✨</p><div class="grid">';
+  THEMEN.forEach(function(t){
+    html += '<button class="thema-btn ' + t.farbe + '" onclick="oeffneThema(\'' + t.id + '\')">' +
+      '<span class="icon">' + t.icon + '</span>' + esc(t.titel) + '</button>';
+  });
+  html += '<button class="thema-btn t-quiz" onclick="starteQuiz()">' +
+    '<span class="icon">🎲</span>Quiz: Größen' +
+    '<div class="s">5 Zufallsfragen aus allen Rubriken · mit Konfetti! 🎉</div></button>';
+  html += '</div>';
+  inhalt.innerHTML = html;
+}
+
+// ── Themenseite mit Flip-Karte ──────────────────────────────
+var aktuFlip = false;
+function oeffneThema(id){
+  var t = THEMEN.find(function(x){ return x.id === id; });
+  var farbKlasse = t.farbe.replace("t-", "v-");
+  var randKlasse = t.farbe.replace("t-", "h-");
+  aktuFlip = false;
+  var html = '<button class="zurueck" onclick="zeigeStart()">← Zurück zur Übersicht</button>' +
+    '<div class="flip-rahmen"><div class="flip-karte" id="flipkarte" onclick="dreheKarte()">' +
+    '<div class="seite vorne ' + farbKlasse + '"><span class="icon">' + t.icon + '</span><h2>' + esc(t.titel) + '</h2>' +
+    '<div class="zeilen">' +
+    t.erklaerungZeilen.map(function(z){
+      return '<p class="zeile' + (z.charAt(0) === "•" ? " punkt" : "") + '">' + esc(z) + '</p>';
+    }).join("") +
+    '</div><div class="tip"><span style="font-size:1.5rem">👆</span>' +
+    '<span>Antippen für Beispiele</span></div></div>' +
+    '<div class="seite hinten ' + randKlasse + '"><div style="display:flex;align-items:center;gap:8px">' +
+    '<span style="font-size:1.8rem">' + t.icon + '</span><h2>Beispiele: ' + esc(t.titel) + '</h2></div>';
+  t.beispiele.forEach(function(b, i){
+    html += '<div class="bsp"><p class="f">' + (i+1) + '. ' + esc(b.frage) + '</p>' +
+      '<p class="l">✅ ' + esc(b.loesung) + '</p></div>';
+  });
+  html += '<p style="margin-top:12px;text-align:center;font-size:.68rem;font-weight:700;' +
+    'letter-spacing:.08em;text-transform:uppercase;color:#94a3b8">Antippen für die Erklärung</p></div></div></div>';
+  inhalt.innerHTML = html;
+}
+function dreheKarte(){
+  aktuFlip = !aktuFlip;
+  document.getElementById("flipkarte").classList.toggle("offen", aktuFlip);
+}
+
+// ── Quiz ────────────────────────────────────────────────────
+var quizFragen = [], quizIndex = 0, quizPunkte = 0, quizGewaehlt = null;
+
+function starteQuiz(){
+  quizFragen = mischen(QUIZ_FRAGEN).slice(0, 5);
+  quizIndex = 0; quizPunkte = 0; quizGewaehlt = null;
+  zeigeQuizFrage();
+}
+
+function zeigeQuizFrage(){
+  var fertig = quizIndex >= quizFragen.length;
+  var f = fertig ? null : quizFragen[quizIndex];
+  var html = '<button class="zurueck" onclick="zeigeStart()">← Zurück zur Übersicht</button><div class="karte">' +
+    '<div class="quiz-top"><span class="badge">🎯 Quiz · Frage ' + Math.min(quizIndex + 1, 5) + ' von 5</span>' +
+    '<span class="punkte">⭐ ' + quizPunkte + '</span></div>' +
+    '<div class="balken"><div style="width:' + ((fertig ? 5 : quizIndex) / 5 * 100) + '%"></div></div>';
+
+  if (!fertig){
+    html += '<p class="rubrik">' + esc(f.rubrik) + '</p><p class="frage">' + esc(f.frage) + '</p><div class="antworten">';
+    f.antworten.forEach(function(a, i){
+      var stil = "";
+      if (quizGewaehlt !== null){
+        if (i === f.richtig) stil = " richtig";
+        else if (i === quizGewaehlt) stil = " falsch";
+        else stil = " inaktiv";
+      }
+      html += '<button class="antwort' + stil + '" onclick="quizAntworten(' + i + ')">' +
+        ["🅰️","🅱️","🔹"][i] + " " + esc(a) + '</button>';
+    });
+    html += '</div>';
+  } else {
+    var emo = quizPunkte >= 4 ? "🏆" : quizPunkte >= 3 ? "🎉" : "💪";
+    var text = quizPunkte === 5 ? "Perfekt, Lukas! Du bist ein Größen-Meister! 🌟"
+      : quizPunkte >= 3 ? "Super gemacht! Weiter so! 😊"
+      : "Gut probiert! Schau nochmal auf die Karten und versuch es erneut! 🚀";
+    html += '<div class="ergebnis"><div class="emo">' + emo + '</div>' +
+      '<h2>' + quizPunkte + ' von 5 richtig!</h2><p>' + text + '</p>' +
+      '<button class="neu-btn" onclick="starteQuiz()">🎲 Neue Fragen spielen</button></div>';
+  }
+  html += '</div>';
+  inhalt.innerHTML = html;
+
+  if (fertig) zeigeKonfetti();
+}
+
+function quizAntworten(i){
+  if (quizGewaehlt !== null) return;
+  quizGewaehlt = i;
+  var f = quizFragen[quizIndex];
+  if (i === f.richtig) quizPunkte++;
+  zeigeQuizFrage();
+  setTimeout(function(){
+    quizGewaehlt = null;
+    quizIndex++;
+    zeigeQuizFrage();
+  }, 1200);
+}
+
+// ── Konfetti ────────────────────────────────────────────────
+var FARBEN = ["#22c55e","#3b82f6","#f59e0b","#ef4444","#a855f7","#14b8a6","#ec4899"];
+function zeigeKonfetti(){
+  konfettiBox.innerHTML = "";
+  for (var i = 0; i < 80; i++){
+    var s = document.createElement("div");
+    s.className = "confetti-stueck";
+    var groesse = 8 + Math.random() * 8;
+    s.style.left = (Math.random() * 100) + "%";
+    s.style.width = groesse + "px";
+    s.style.height = (groesse * 0.5) + "px";
+    s.style.backgroundColor = FARBEN[i % FARBEN.length];
+    s.style.animationDuration = (2.2 + Math.random() * 1.8) + "s";
+    s.style.animationDelay = (Math.random() * 1.2) + "s";
+    konfettiBox.appendChild(s);
+  }
+  setTimeout(function(){ konfettiBox.innerHTML = ""; }, 5000);
+}
+
+// ── Impressum / Datenschutz ──────────────────────────────────
+function oeffneSheet(art){
+  document.getElementById("sheet-titel").textContent =
+    art === "impressum" ? "📜 Impressum" : "🔐 Datenschutz";
+  document.getElementById("sheet-text").innerHTML =
+    art === "impressum" ? IMPRESSUM : DATENSCHUTZ;
+  document.getElementById("sheet-overlay").classList.remove("versteckt");
+}
+function schliesseSheet(e){
+  if (e && e.stopPropagation) { /* Overlay-Klick erlaubt Schließen */ }
+  document.getElementById("sheet-overlay").classList.add("versteckt");
+}
+
+zeigeStart();
+</script>
+</body>
+</html>
